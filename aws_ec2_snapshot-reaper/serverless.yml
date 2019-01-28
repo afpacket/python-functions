@@ -1,0 +1,53 @@
+service: aws-ec2-snapshot-reaper
+
+provider:
+  name: aws
+  runtime: python3.6
+  region: us-east-2
+
+functions:
+  reap:
+    handler: aws_ec2_snapshot-reaper.lambda_handler
+    timeout: 300
+    memorySize: 128
+    events:
+      - schedule: cron(0 23 * * ? *)
+    role: ServerlessEC2SnapshotReaperRole
+
+resources:
+  Resources:
+    ServerlessEC2SnapshotReaperRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ServerlessEC2SnapshotReaperRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - lambda.amazonaws.com
+              Action:
+                - sts:AssumeRole
+        Policies:
+          - PolicyName: ServerlessEC2SnapshotReaperPolicy
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                  Resource: "arn:aws:logs:*:*:*"
+
+                - Effect: Allow
+                  Action:
+                    - logs:PutLogEvents
+                  Resource: "arn:aws:logs:*:*:log-group:/aws/lambda/${self:service.name}:*"
+                  
+                - Effect: Allow
+                  Action:
+                    - ec2:DescribeSnapshots
+                    - ec2:DescribeSnapshotAttribute
+                    - ec2:DescribeTags
+                    - ec2:DeleteSnapshot
+                  Resource: "*"
