@@ -64,6 +64,7 @@ def reap_snapshots(ec2_client, region, errors):
                 print(
                     f"Deleting snapshot-id: { snapshot['SnapshotId'] }, region: { region }, timestamp: { snapshot['StartTime'] }"
                 )
+
                 ec2_client.delete_snapshot(
                     SnapshotId=snapshot["SnapshotId"], DryRun=dry_run
                 )
@@ -74,9 +75,11 @@ def reap_snapshots(ec2_client, region, errors):
                     print(
                         f"Deleting snapshot-id: { snapshot['SnapshotId'] }, region: { region }, timestamp: { snapshot['StartTime'] }"
                     )
+
                     ec2_client.delete_snapshot(
                         SnapshotId=snapshot["SnapshotId"], DryRun=dry_run
                     )
+
                 except ClientError as error:
                     if "DryRunOperation" not in str(error):
                         errors.append(
